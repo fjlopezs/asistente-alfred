@@ -35,7 +35,8 @@ resource "aws_iam_role_policy" "ssm_api_key" {
 }
 
 resource "aws_cloudwatch_log_group" "lambda" {
-  name = "/aws/lambda/${var.function_name}"
+  name              = "/aws/lambda/${var.function_name}"
+  retention_in_days = 30
 }
 
 resource "aws_lambda_function" "alfred" {
