@@ -453,6 +453,10 @@ func handler(ctx context.Context, ev Request) (Response, error) {
 			return speak("¿Qué desea preguntarme?", false, attrs), nil
 		}
 		return handleQuestion(ctx, ev, q, attrs), nil
+	case "AskIntent":
+		// Carrier said alone ("pregunta", "alfred"): wait for the question
+		// instead of letting a slot-less intent like WeatherIntent win.
+		return speak("Dígame, señor.", false, attrs), nil
 	case "AMAZON.StopIntent", "AMAZON.CancelIntent", "AMAZON.NavigateHomeIntent":
 		return speak("Hasta luego, señor.", true, Attributes{}), nil
 	case "AMAZON.HelpIntent":

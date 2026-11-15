@@ -42,3 +42,16 @@ func TestQuestionIntentsMatchModel(t *testing.T) {
 		}
 	}
 }
+
+func TestAskIntentWaitsForQuestion(t *testing.T) {
+	var ev Request
+	ev.Request.Type = "IntentRequest"
+	ev.Request.Intent.Name = "AskIntent"
+	r, err := handler(t.Context(), ev)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if *r.Response.ShouldEndSession || r.Response.OutputSpeech.SSML != ssml("Dígame, señor.") {
+		t.Fatalf("unexpected response %+v", r.Response)
+	}
+}

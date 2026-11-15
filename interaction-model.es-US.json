@@ -26,7 +26,35 @@
             "busca {query}",
             "responde {query}",
             "sabes {query}",
-            "otra pregunta {query}"
+            "otra pregunta {query}",
+            "alfred {query}",
+            "oye alfred {query}",
+            "hola alfred {query}",
+            "alfred una pregunta {query}",
+            "alfred dime {query}",
+            "alfred pregunta {query}",
+            "tengo una pregunta {query}"
+          ]
+        },
+        {
+          "name": "AskIntent",
+          "samples": [
+            "pregunta",
+            "una pregunta",
+            "otra pregunta",
+            "tengo una pregunta",
+            "tengo otra pregunta",
+            "pregúntale",
+            "te quiero preguntar algo",
+            "quiero preguntarte algo",
+            "quiero hacerte una pregunta",
+            "alfred",
+            "oye alfred",
+            "hola alfred",
+            "oye",
+            "dime",
+            "alfred una pregunta",
+            "alfred tengo una pregunta"
           ]
         },
         {
