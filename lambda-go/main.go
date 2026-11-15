@@ -31,7 +31,8 @@ const (
 		"No uses markdown, listas, viñetas, emojis, URLs ni símbolos que no se puedan pronunciar. " +
 		"Si la pregunta requiere una respuesta larga, da un resumen y ofrece ampliar. " +
 		"Usa web_search solo para información actual o que cambia (noticias, resultados deportivos, precios, " +
-		"eventos, horarios); para conocimiento general responde directamente. No menciones fuentes, URLs ni si buscaste o no."
+		"eventos, horarios); para conocimiento general responde directamente. " +
+		"Di solo la respuesta: nunca hables de búsquedas, herramientas, fuentes ni URLs, ni expliques cómo obtuviste la información."
 )
 
 // webSearch is Claude's server-side search: one query per question keeps us
