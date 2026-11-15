@@ -6,7 +6,6 @@ Personal Alexa custom skill (invocation: "asistente alfred") that answers questi
 
 - `lambda-go/` — Lambda handler (Go, `provided.al2023`, arm64). Claude via `anthropic-sdk-go`, weather tool backed by [Open-Meteo](https://open-meteo.com/).
 - `interaction-model.es-MX.json`, `interaction-model.es-US.json` — Alexa interaction models (es-US is synced from es-MX).
-- `lambda/` — original Python version, kept for reference.
 
 ## Configuration (Lambda env vars)
 
