@@ -29,8 +29,27 @@ const (
 	system   = "Eres Alfred, un mayordomo asistente de voz que responde a través de Alexa en español latinoamericano neutro. " +
 		"Tus respuestas se leen en voz alta: sé breve (2-4 frases), natural y directo. " +
 		"No uses markdown, listas, viñetas, emojis, URLs ni símbolos que no se puedan pronunciar. " +
-		"Si la pregunta requiere una respuesta larga, da un resumen y ofrece ampliar."
+		"Si la pregunta requiere una respuesta larga, da un resumen y ofrece ampliar. " +
+		"Usa web_search solo para información actual o que cambia (noticias, resultados deportivos, precios, " +
+		"eventos, horarios); para conocimiento general responde directamente. No menciones fuentes, URLs ni si buscaste o no."
 )
+
+// webSearch is Claude's server-side search: one query per question keeps us
+// inside Alexa's ~8s window.
+var webSearch = anthropic.WebSearchTool20250305Param{
+	MaxUses: anthropic.Int(1),
+	UserLocation: anthropic.UserLocationParam{
+		City:     anthropic.String("Temuco"),
+		Region:   anthropic.String("Araucanía"),
+		Country:  anthropic.String("CL"),
+		Timezone: anthropic.String("America/Santiago"),
+	},
+}
+
+var tools = []anthropic.ToolUnionParam{
+	{OfTool: &weatherTool},
+	{OfWebSearchTool20250305: &webSearch},
+}
 
 var (
 	model       = envOr("CLAUDE_MODEL", "claude-haiku-5-5")
@@ -198,13 +217,21 @@ func askClaude(ctx context.Context, question string, history []Turn) (string, er
 			System:       []anthropic.TextBlockParam{{Text: systemPrompt()}},
 			Thinking:     anthropic.ThinkingConfigParamUnion{OfDisabled: &anthropic.ThinkingConfigDisabledParam{}},
 			OutputConfig: anthropic.OutputConfigParam{Effort: anthropic.OutputConfigEffortLow},
-			Tools:        []anthropic.ToolUnionParam{{OfTool: &weatherTool}},
+			Tools:        tools,
 			Messages:     msgs,
 		})
 		if err != nil {
 			return "", err
 		}
-		if resp.StopReason != anthropic.StopReasonToolUse || i == 2 {
+		if i == 2 {
+			break
+		}
+		if resp.StopReason == anthropic.StopReasonPauseTurn {
+			// Server-side search paused; resend as-is and the API resumes.
+			msgs = append(msgs, resp.ToParam())
+			continue
+		}
+		if resp.StopReason != anthropic.StopReasonToolUse {
 			break
 		}
 		msgs = append(msgs, resp.ToParam())
@@ -233,8 +260,13 @@ func askClaude(ctx context.Context, question string, history []Turn) (string, er
 	}
 	var sb strings.Builder
 	for _, b := range resp.Content {
-		if t, ok := b.AsAny().(anthropic.TextBlock); ok {
-			sb.WriteString(t.Text)
+		switch v := b.AsAny().(type) {
+		case anthropic.ServerToolUseBlock:
+			log.Printf("web_search %s", v.JSON.Input.Raw())
+		case anthropic.WebSearchToolResultBlock:
+			sb.Reset() // drop preamble like "Voy a buscar..."
+		case anthropic.TextBlock:
+			sb.WriteString(v.Text)
 		}
 	}
 	// Strip markdown characters Alexa would otherwise read or mangle.

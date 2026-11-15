@@ -4,7 +4,7 @@ Personal Alexa custom skill (invocation: "asistente alfred") that answers questi
 
 ## Layout
 
-- `lambda-go/` — Lambda handler (Go, `provided.al2023`, arm64). Claude via `anthropic-sdk-go`, weather tool backed by [Open-Meteo](https://open-meteo.com/).
+- `lambda-go/` — Lambda handler (Go, `provided.al2023`, arm64). Claude via `anthropic-sdk-go`, weather tool backed by [Open-Meteo](https://open-meteo.com/) and Claude web search for current information.
 - `terraform/` — AWS resources (IAM role, Lambda, permission for Alexa, log group). Terraform 1.17.2, AWS provider 6.73.
 - `interaction-model.es-MX.json`, `interaction-model.es-US.json` — Alexa interaction models (es-US is synced from es-MX).
 
