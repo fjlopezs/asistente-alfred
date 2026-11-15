@@ -34,10 +34,13 @@ func (f *fakeDDB) Query(_ context.Context, in *dynamodb.QueryInput, _ ...func(*d
 
 func withFakeDDB(t *testing.T, f *fakeDDB) {
 	t.Helper()
-	ddbOnce.Do(func() {}) // skip real client init
-	oldDB, oldTable := ddb, memoryTable
-	ddb, memoryTable = f, "mem"
-	t.Cleanup(func() { ddb, memoryTable = oldDB, oldTable })
+	oldTable := memoryTable
+	ddbClient.set(f)
+	memoryTable = "mem"
+	t.Cleanup(func() {
+		memoryTable = oldTable
+		ddbClient = lazy[ddbAPI]{}
+	})
 }
 
 func TestSaveMemorySetsWeekTTL(t *testing.T) {

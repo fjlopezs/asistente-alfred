@@ -13,7 +13,6 @@ import (
 	"net/http"
 	"os"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/anthropics/anthropic-sdk-go/v2"
@@ -58,18 +57,14 @@ var (
 	skillID     = os.Getenv("ALEXA_SKILL_ID")
 	apiKeyParam = envOr("API_KEY_PARAM", "/alfred/anthropic-api-key")
 
-	clientOnce sync.Once
-	client     anthropic.Client
-	clientErr  error
-
-	cfgOnce sync.Once
-	cfg     aws.Config
-	cfgErr  error
+	claudeClient lazy[anthropic.Client]
+	awsCfg       lazy[aws.Config]
 )
 
 func awsConfig(ctx context.Context) (aws.Config, error) {
-	cfgOnce.Do(func() { cfg, cfgErr = config.LoadDefaultConfig(ctx) })
-	return cfg, cfgErr
+	return awsCfg.get(ctx, func(ctx context.Context) (aws.Config, error) {
+		return config.LoadDefaultConfig(ctx)
+	})
 }
 
 func envOr(k, d string) string {
@@ -176,27 +171,24 @@ func ptr[T any](v T) *T { return &v }
 // --- Claude ---
 
 func getClient(ctx context.Context) (anthropic.Client, error) {
-	clientOnce.Do(func() {
+	return claudeClient.get(ctx, func(ctx context.Context) (anthropic.Client, error) {
 		cfg, err := awsConfig(ctx)
 		if err != nil {
-			clientErr = err
-			return
+			return anthropic.Client{}, err
 		}
 		out, err := ssm.NewFromConfig(cfg).GetParameter(ctx, &ssm.GetParameterInput{
 			Name: aws.String(apiKeyParam), WithDecryption: aws.Bool(true),
 		})
 		if err != nil {
-			clientErr = err
-			return
+			return anthropic.Client{}, err
 		}
 		// Alexa waits ~8s for the skill; fail fast instead of retrying.
-		client = anthropic.NewClient(
+		return anthropic.NewClient(
 			option.WithAPIKey(*out.Parameter.Value),
 			option.WithRequestTimeout(7*time.Second),
 			option.WithMaxRetries(0),
-		)
+		), nil
 	})
-	return client, clientErr
 }
 
 func systemPrompt(memory string) string {
@@ -467,6 +459,23 @@ func handler(ctx context.Context, ev Request) (Response, error) {
 	return speak("No entendí eso.", false, attrs), nil
 }
 
+// warmUp builds the AWS config and clients during Lambda INIT, which overlaps
+// with the cheap LaunchRequest, so the first question doesn't pay for SSM and
+// config loading. Failures are only logged: getClient/getDDB retry on demand.
+func warmUp() {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+	start := time.Now()
+	if _, err := getClient(ctx); err != nil {
+		log.Printf("warm up claude client: %v", err)
+	}
+	if _, err := getDDB(ctx); err != nil {
+		log.Printf("warm up dynamodb: %v", err)
+	}
+	log.Printf("warm up done in %s", time.Since(start).Round(time.Millisecond))
+}
+
 func main() {
+	warmUp()
 	lambda.Start(handler)
 }

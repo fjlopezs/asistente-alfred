@@ -7,7 +7,6 @@ import (
 	"os"
 	"slices"
 	"strings"
-	"sync"
 	"time"
 	_ "time/tzdata" // provided.al2023 has no zoneinfo
 
@@ -31,9 +30,7 @@ var (
 	memoryTable = os.Getenv("MEMORY_TABLE")
 	userTZ      = loadTZ(envOr("TIMEZONE", "America/Santiago"))
 
-	ddbOnce sync.Once
-	ddb     ddbAPI
-	ddbErr  error
+	ddbClient lazy[ddbAPI]
 )
 
 type ddbAPI interface {
@@ -58,15 +55,13 @@ func loadTZ(name string) *time.Location {
 }
 
 func getDDB(ctx context.Context) (ddbAPI, error) {
-	ddbOnce.Do(func() {
+	return ddbClient.get(ctx, func(ctx context.Context) (ddbAPI, error) {
 		cfg, err := awsConfig(ctx)
 		if err != nil {
-			ddbErr = err
-			return
+			return nil, err
 		}
-		ddb = dynamodb.NewFromConfig(cfg)
+		return dynamodb.NewFromConfig(cfg), nil
 	})
-	return ddb, ddbErr
 }
 
 // loadMemory returns up to memoryLimit Q/A pairs from other sessions in the
