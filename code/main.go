@@ -27,9 +27,10 @@ import (
 const (
 	maxTurns = 10 // user/assistant pairs kept in the Alexa session
 	system   = "Eres Alfred, un mayordomo asistente de voz que responde a través de Alexa en español latinoamericano neutro. " +
-		"Tus respuestas se leen en voz alta: sé breve (2-4 frases), natural y directo. " +
+		"Tus respuestas se leen en voz alta: sé muy conciso, una o dos frases cortas (unas 40 palabras como máximo). " +
+		"Ve directo al dato: sin introducciones, sin repetir la pregunta y sin cerrar ofreciendo más ayuda. " +
+		"Si el tema es amplio, di solo lo esencial; el usuario pedirá más si lo quiere. " +
 		"No uses markdown, listas, viñetas, emojis, URLs ni símbolos que no se puedan pronunciar. " +
-		"Si la pregunta requiere una respuesta larga, da un resumen y ofrece ampliar. " +
 		"Usa web_search solo para información actual o que cambia (noticias, resultados deportivos, precios, " +
 		"eventos, horarios); para conocimiento general responde directamente. " +
 		"Di solo la respuesta: nunca hables de búsquedas, herramientas, fuentes ni URLs, ni expliques cómo obtuviste la información."
@@ -60,7 +61,16 @@ var (
 	clientOnce sync.Once
 	client     anthropic.Client
 	clientErr  error
+
+	cfgOnce sync.Once
+	cfg     aws.Config
+	cfgErr  error
 )
+
+func awsConfig(ctx context.Context) (aws.Config, error) {
+	cfgOnce.Do(func() { cfg, cfgErr = config.LoadDefaultConfig(ctx) })
+	return cfg, cfgErr
+}
 
 func envOr(k, d string) string {
 	if v := os.Getenv(k); v != "" {
@@ -80,8 +90,14 @@ type Attributes struct {
 	History []Turn `json:"history,omitempty"`
 }
 
+type User struct {
+	UserID string `json:"userId"`
+}
+
 type Request struct {
 	Session struct {
+		SessionID   string `json:"sessionId"`
+		User        User   `json:"user"`
 		Application struct {
 			ApplicationID string `json:"applicationId"`
 		} `json:"application"`
@@ -92,6 +108,7 @@ type Request struct {
 			Application struct {
 				ApplicationID string `json:"applicationId"`
 			} `json:"application"`
+			User           User   `json:"user"`
 			APIEndpoint    string `json:"apiEndpoint"`
 			APIAccessToken string `json:"apiAccessToken"`
 		} `json:"System"`
@@ -160,7 +177,7 @@ func ptr[T any](v T) *T { return &v }
 
 func getClient(ctx context.Context) (anthropic.Client, error) {
 	clientOnce.Do(func() {
-		cfg, err := config.LoadDefaultConfig(ctx)
+		cfg, err := awsConfig(ctx)
 		if err != nil {
 			clientErr = err
 			return
@@ -182,16 +199,16 @@ func getClient(ctx context.Context) (anthropic.Client, error) {
 	return client, clientErr
 }
 
-func systemPrompt() string {
+func systemPrompt(memory string) string {
 	s := system + "\nFecha y hora UTC actual: " + time.Now().UTC().Format(time.RFC3339) + "."
 	if defaultCity != "" {
 		s += "\nEl usuario vive en " + defaultCity + ". Si pregunta por el clima sin decir el lugar, " +
 			"usa get_weather sin city (su ciudad) sin preguntarle."
 	}
-	return s
+	return s + memory
 }
 
-func askClaude(ctx context.Context, question string, history []Turn) (string, error) {
+func askClaude(ctx context.Context, question string, history []Turn, memory string) (string, error) {
 	c, err := getClient(ctx)
 	if err != nil {
 		return "", fmt.Errorf("init client: %w", err)
@@ -214,8 +231,8 @@ func askClaude(ctx context.Context, question string, history []Turn) (string, er
 	for i := 0; ; i++ {
 		resp, err = c.Messages.New(ctx, anthropic.MessageNewParams{
 			Model:        anthropic.Model(model),
-			MaxTokens:    400,
-			System:       []anthropic.TextBlockParam{{Text: systemPrompt()}},
+			MaxTokens:    250,
+			System:       []anthropic.TextBlockParam{{Text: systemPrompt(memory)}},
 			Thinking:     anthropic.ThinkingConfigParamUnion{OfDisabled: &anthropic.ThinkingConfigDisabledParam{}},
 			OutputConfig: anthropic.OutputConfigParam{Effort: anthropic.OutputConfigEffortLow},
 			Tools:        tools,
@@ -366,7 +383,11 @@ func handleQuestion(ctx context.Context, ev Request, q string, attrs Attributes)
 	log.Printf("question: %q", q)
 	progressive := sendProgressive(ctx, ev)
 	defer func() { <-progressive }() // final response must not overtake the filler
-	answer, err := askClaude(ctx, q, attrs.History)
+	user := ev.Session.User.UserID
+	if user == "" {
+		user = ev.Context.System.User.UserID
+	}
+	answer, err := askClaude(ctx, q, attrs.History, recall(ctx, user, ev.Session.SessionID))
 	if err != nil {
 		var apierr *anthropic.Error
 		switch {
@@ -383,6 +404,7 @@ func handleQuestion(ctx context.Context, ev Request, q string, attrs Attributes)
 			return speak("No pude conectarme con Claude.", false, attrs)
 		}
 	}
+	remember(ctx, user, ev.Session.SessionID, q, answer)
 	h := append(attrs.History, Turn{"user", q}, Turn{"assistant", answer})
 	if len(h) > 2*maxTurns {
 		h = h[len(h)-2*maxTurns:]

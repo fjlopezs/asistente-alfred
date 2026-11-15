@@ -5,7 +5,7 @@ Personal Alexa custom skill (invocation: "asistente alfred") that answers questi
 ## Layout
 
 - `code/` — Lambda handler (Go, `provided.al2023`, arm64). Claude via `anthropic-sdk-go`, weather tool backed by [Open-Meteo](https://open-meteo.com/) and Claude web search for current information.
-- `terraform/` — AWS resources (IAM role, Lambda, permission for Alexa, log group). Terraform 1.17.2, AWS provider 6.73.
+- `terraform/` — AWS resources (IAM role, Lambda, permission for Alexa, log group, DynamoDB memory table). Terraform 1.17.2, AWS provider 6.73.
 - `interaction-model.es-MX.json`, `interaction-model.es-US.json` — Alexa interaction models (es-US is synced from es-MX).
 
 ## Configuration (Lambda env vars)
@@ -16,6 +16,12 @@ Personal Alexa custom skill (invocation: "asistente alfred") that answers questi
 | `API_KEY_PARAM` | SSM SecureString holding the Anthropic API key |
 | `ALEXA_SKILL_ID` | Rejects requests from other skills |
 | `DEFAULT_CITY` | City used for weather when none is said |
+| `MEMORY_TABLE` | DynamoDB table for conversation memory (unset disables it) |
+| `TIMEZONE` | User's timezone, used to date past conversations |
+
+## Memory
+
+Each question/answer is stored in DynamoDB (`alfred-memory`, key `user` + `ts`) with a 7-day TTL (`expires_at`). On every question, up to 20 Q/A pairs from previous sessions of the same Alexa user are added to the system prompt; the current session travels in the session attributes. Memory errors are logged and never fail a response.
 
 ## Build and deploy
 

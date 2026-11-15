@@ -39,3 +39,14 @@ variable "lambda_zip" {
   type        = string
   default     = "../build/alfred.zip"
 }
+
+variable "memory_table" {
+  type    = string
+  default = "alfred-memory"
+}
+
+variable "timezone" {
+  description = "User's timezone, used to date past conversations"
+  type        = string
+  default     = "America/Santiago"
+}
