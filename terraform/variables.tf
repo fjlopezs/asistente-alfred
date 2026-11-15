@@ -37,5 +37,5 @@ variable "default_city" {
 variable "lambda_zip" {
   description = "Zip with the Go bootstrap binary, only used when creating the function"
   type        = string
-  default     = "../build/alfred-go.zip"
+  default     = "../build/alfred.zip"
 }

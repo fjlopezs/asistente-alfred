@@ -4,7 +4,7 @@ Personal Alexa custom skill (invocation: "asistente alfred") that answers questi
 
 ## Layout
 
-- `lambda-go/` — Lambda handler (Go, `provided.al2023`, arm64). Claude via `anthropic-sdk-go`, weather tool backed by [Open-Meteo](https://open-meteo.com/) and Claude web search for current information.
+- `code/` — Lambda handler (Go, `provided.al2023`, arm64). Claude via `anthropic-sdk-go`, weather tool backed by [Open-Meteo](https://open-meteo.com/) and Claude web search for current information.
 - `terraform/` — AWS resources (IAM role, Lambda, permission for Alexa, log group). Terraform 1.17.2, AWS provider 6.73.
 - `interaction-model.es-MX.json`, `interaction-model.es-US.json` — Alexa interaction models (es-US is synced from es-MX).
 
@@ -20,20 +20,20 @@ Personal Alexa custom skill (invocation: "asistente alfred") that answers questi
 ## Build and deploy
 
 ```sh
-cd lambda-go
-go test ./...
-GOOS=linux GOARCH=arm64 CGO_ENABLED=0 go build -tags lambda.norpc -trimpath -ldflags="-s -w" -o ../build/go/bootstrap .
-cd ../build/go && zip ../alfred-go.zip bootstrap
-aws lambda update-function-code --function-name alfred-alexa-skill --zip-file fileb://../alfred-go.zip
+make test     # go vet + go test
+make deploy   # test, build linux/arm64, zip and upload to Lambda
+make logs     # tail CloudWatch logs (SINCE=1h to go further back)
+make help     # all targets
 ```
+
+Defaults: `AWS_PROFILE=personal`, `AWS_REGION=us-east-1`, `FUNCTION=alfred-alexa-skill` (override on the command line).
 
 ## Infrastructure
 
 ```sh
-cd terraform
-terraform init
-terraform plan
-terraform apply
+cd terraform && terraform init   # once
+make plan
+make apply
 ```
 
 Terraform manages the function configuration; code is deployed with the command above (`filename`/`source_code_hash` are ignored). The API key SSM parameter is created by hand and not managed, so the key never lands in state. State lives in S3: `s3://infra-123456789012/asistente-alfred/terraform.tfstate` (private, versioned, encrypted, native S3 locking). The bucket was created by hand.
