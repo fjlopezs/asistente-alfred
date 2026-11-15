@@ -2,3 +2,8 @@ build/
 *.zip
 bootstrap
 .DS_Store
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
