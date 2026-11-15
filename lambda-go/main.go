@@ -294,6 +294,27 @@ var questionIntents = map[string]string{
 	"CuantasIntent":   "cuántas",
 	"DondeIntent":     "dónde",
 	"CuandoIntent":    "cuándo",
+	// Broader openers so unmatched questions reach Claude instead of the
+	// closest-sounding intent. Overlaps (es / es cierto que) are harmless:
+	// restoring the carrier yields the original utterance either way.
+	"QueIntent":        "qué",
+	"EsIntent":         "es",
+	"HayIntent":        "hay",
+	"PuedesIntent":     "puedes",
+	"ParaQueIntent":    "para qué",
+	"AQueIntent":       "a qué",
+	"EnQueIntent":      "en qué",
+	"DeQueIntent":      "de qué",
+	"ElIntent":         "el",
+	"LaIntent":         "la",
+	"LosIntent":        "los",
+	"LasIntent":        "las",
+	"EnIntent":         "en",
+	"EsCiertoIntent":   "es cierto que",
+	"EsVerdadIntent":   "es verdad que",
+	"OcurreQueIntent":  "ocurre que",
+	"ComoSeDiceIntent": "cómo se dice",
+	"TraduceIntent":    "traduce",
 }
 
 // --- Progressive response ---

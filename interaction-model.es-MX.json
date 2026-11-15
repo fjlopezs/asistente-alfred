@@ -65,23 +65,18 @@
             "cómo está el tiempo",
             "cómo está el tiempo {day}",
             "cómo estará el tiempo {day}",
-            "lloverá",
             "lloverá {day}",
             "lloverá en {city}",
             "lloverá en {city} {day}",
-            "va a llover",
             "va a llover {day}",
             "va a llover en {city}",
             "va a llover en {city} {day}",
-            "está lloviendo",
             "está lloviendo en {city}",
             "va a nevar {day}",
-            "el clima",
             "el clima {day}",
             "el clima en {city}",
             "el clima en {city} {day}",
             "el clima para {day}",
-            "el pronóstico",
             "el pronóstico del tiempo",
             "el pronóstico para {day}",
             "el pronóstico en {city}",
@@ -95,11 +90,8 @@
             "cuántos grados hace",
             "cuántos grados hace en {city}",
             "cuántos grados hará {day}",
-            "hace frío",
-            "hace calor",
             "hará frío {day}",
             "hará calor {day}",
-            "necesito paraguas",
             "necesito paraguas {day}",
             "llevo paraguas {day}"
           ]
@@ -261,6 +253,222 @@
           ]
         },
         {
+          "name": "QueIntent",
+          "slots": [
+            {
+              "name": "query",
+              "type": "AMAZON.SearchQuery"
+            }
+          ],
+          "samples": [
+            "qué {query}"
+          ]
+        },
+        {
+          "name": "EsIntent",
+          "slots": [
+            {
+              "name": "query",
+              "type": "AMAZON.SearchQuery"
+            }
+          ],
+          "samples": [
+            "es {query}"
+          ]
+        },
+        {
+          "name": "HayIntent",
+          "slots": [
+            {
+              "name": "query",
+              "type": "AMAZON.SearchQuery"
+            }
+          ],
+          "samples": [
+            "hay {query}"
+          ]
+        },
+        {
+          "name": "PuedesIntent",
+          "slots": [
+            {
+              "name": "query",
+              "type": "AMAZON.SearchQuery"
+            }
+          ],
+          "samples": [
+            "puedes {query}"
+          ]
+        },
+        {
+          "name": "ParaQueIntent",
+          "slots": [
+            {
+              "name": "query",
+              "type": "AMAZON.SearchQuery"
+            }
+          ],
+          "samples": [
+            "para qué {query}"
+          ]
+        },
+        {
+          "name": "AQueIntent",
+          "slots": [
+            {
+              "name": "query",
+              "type": "AMAZON.SearchQuery"
+            }
+          ],
+          "samples": [
+            "a qué {query}"
+          ]
+        },
+        {
+          "name": "EnQueIntent",
+          "slots": [
+            {
+              "name": "query",
+              "type": "AMAZON.SearchQuery"
+            }
+          ],
+          "samples": [
+            "en qué {query}"
+          ]
+        },
+        {
+          "name": "DeQueIntent",
+          "slots": [
+            {
+              "name": "query",
+              "type": "AMAZON.SearchQuery"
+            }
+          ],
+          "samples": [
+            "de qué {query}"
+          ]
+        },
+        {
+          "name": "ElIntent",
+          "slots": [
+            {
+              "name": "query",
+              "type": "AMAZON.SearchQuery"
+            }
+          ],
+          "samples": [
+            "el {query}"
+          ]
+        },
+        {
+          "name": "LaIntent",
+          "slots": [
+            {
+              "name": "query",
+              "type": "AMAZON.SearchQuery"
+            }
+          ],
+          "samples": [
+            "la {query}"
+          ]
+        },
+        {
+          "name": "LosIntent",
+          "slots": [
+            {
+              "name": "query",
+              "type": "AMAZON.SearchQuery"
+            }
+          ],
+          "samples": [
+            "los {query}"
+          ]
+        },
+        {
+          "name": "LasIntent",
+          "slots": [
+            {
+              "name": "query",
+              "type": "AMAZON.SearchQuery"
+            }
+          ],
+          "samples": [
+            "las {query}"
+          ]
+        },
+        {
+          "name": "EnIntent",
+          "slots": [
+            {
+              "name": "query",
+              "type": "AMAZON.SearchQuery"
+            }
+          ],
+          "samples": [
+            "en {query}"
+          ]
+        },
+        {
+          "name": "EsCiertoIntent",
+          "slots": [
+            {
+              "name": "query",
+              "type": "AMAZON.SearchQuery"
+            }
+          ],
+          "samples": [
+            "es cierto que {query}"
+          ]
+        },
+        {
+          "name": "EsVerdadIntent",
+          "slots": [
+            {
+              "name": "query",
+              "type": "AMAZON.SearchQuery"
+            }
+          ],
+          "samples": [
+            "es verdad que {query}"
+          ]
+        },
+        {
+          "name": "OcurreQueIntent",
+          "slots": [
+            {
+              "name": "query",
+              "type": "AMAZON.SearchQuery"
+            }
+          ],
+          "samples": [
+            "ocurre que {query}"
+          ]
+        },
+        {
+          "name": "ComoSeDiceIntent",
+          "slots": [
+            {
+              "name": "query",
+              "type": "AMAZON.SearchQuery"
+            }
+          ],
+          "samples": [
+            "cómo se dice {query}"
+          ]
+        },
+        {
+          "name": "TraduceIntent",
+          "slots": [
+            {
+              "name": "query",
+              "type": "AMAZON.SearchQuery"
+            }
+          ],
+          "samples": [
+            "traduce {query}"
+          ]
+        },
+        {
           "name": "AMAZON.CancelIntent",
           "samples": []
         },
@@ -316,7 +524,13 @@
             "ya no hables",
             "no sigas",
             "no quiero escuchar más",
-            "silencio por favor"
+            "silencio por favor",
+            "no gracias",
+            "nada más gracias",
+            "eso sería todo",
+            "gracias señor",
+            "gracias eso es todo",
+            "muy amable gracias"
           ]
         },
         {
@@ -384,7 +598,12 @@
             }
           ]
         }
-      ]
+      ],
+      "modelConfiguration": {
+        "fallbackIntentSensitivity": {
+          "level": "HIGH"
+        }
+      }
     }
   }
 }
