@@ -1,0 +1,390 @@
+{
+  "interactionModel": {
+    "languageModel": {
+      "invocationName": "asistente alfred",
+      "intents": [
+        {
+          "name": "ChatIntent",
+          "slots": [
+            {
+              "name": "query",
+              "type": "AMAZON.SearchQuery"
+            }
+          ],
+          "samples": [
+            "pregunta {query}",
+            "pregúntale {query}",
+            "dime {query}",
+            "quiero saber {query}",
+            "explícame {query}",
+            "oye {query}",
+            "una pregunta {query}",
+            "necesito {query}",
+            "ayúdame con {query}",
+            "qué opinas de {query}",
+            "cuéntame {query}",
+            "busca {query}",
+            "responde {query}",
+            "sabes {query}",
+            "otra pregunta {query}"
+          ]
+        },
+        {
+          "name": "WeatherIntent",
+          "slots": [
+            {
+              "name": "city",
+              "type": "AMAZON.City"
+            },
+            {
+              "name": "day",
+              "type": "WeatherDay"
+            }
+          ],
+          "samples": [
+            "qué tiempo hace",
+            "qué tiempo hace {day}",
+            "qué tiempo hace en {city}",
+            "qué tiempo hace en {city} {day}",
+            "qué tiempo hará {day}",
+            "qué tiempo hará en {city}",
+            "qué tiempo hará en {city} {day}",
+            "qué tiempo va a hacer {day}",
+            "qué tiempo va a hacer en {city}",
+            "qué tiempo va a hacer en {city} {day}",
+            "cómo está el clima",
+            "cómo está el clima {day}",
+            "cómo está el clima en {city}",
+            "cómo está el clima en {city} {day}",
+            "cómo estará el clima",
+            "cómo estará el clima {day}",
+            "cómo estará el clima en {city}",
+            "cómo estará el clima en {city} {day}",
+            "cómo va a estar el clima {day}",
+            "cómo va a estar el clima en {city} {day}",
+            "cómo está el tiempo",
+            "cómo está el tiempo {day}",
+            "cómo estará el tiempo {day}",
+            "lloverá",
+            "lloverá {day}",
+            "lloverá en {city}",
+            "lloverá en {city} {day}",
+            "va a llover",
+            "va a llover {day}",
+            "va a llover en {city}",
+            "va a llover en {city} {day}",
+            "está lloviendo",
+            "está lloviendo en {city}",
+            "va a nevar {day}",
+            "el clima",
+            "el clima {day}",
+            "el clima en {city}",
+            "el clima en {city} {day}",
+            "el clima para {day}",
+            "el pronóstico",
+            "el pronóstico del tiempo",
+            "el pronóstico para {day}",
+            "el pronóstico en {city}",
+            "el pronóstico del tiempo para {day}",
+            "cuál es el pronóstico",
+            "cuál es el pronóstico para {day}",
+            "cuál es el pronóstico del tiempo",
+            "qué temperatura hace",
+            "qué temperatura hace en {city}",
+            "qué temperatura hará {day}",
+            "cuántos grados hace",
+            "cuántos grados hace en {city}",
+            "cuántos grados hará {day}",
+            "hace frío",
+            "hace calor",
+            "hará frío {day}",
+            "hará calor {day}",
+            "necesito paraguas",
+            "necesito paraguas {day}",
+            "llevo paraguas {day}"
+          ]
+        },
+        {
+          "name": "QueEsIntent",
+          "slots": [
+            {
+              "name": "query",
+              "type": "AMAZON.SearchQuery"
+            }
+          ],
+          "samples": [
+            "qué es {query}"
+          ]
+        },
+        {
+          "name": "QueSonIntent",
+          "slots": [
+            {
+              "name": "query",
+              "type": "AMAZON.SearchQuery"
+            }
+          ],
+          "samples": [
+            "qué son {query}"
+          ]
+        },
+        {
+          "name": "QuienEsIntent",
+          "slots": [
+            {
+              "name": "query",
+              "type": "AMAZON.SearchQuery"
+            }
+          ],
+          "samples": [
+            "quién es {query}"
+          ]
+        },
+        {
+          "name": "QuienFueIntent",
+          "slots": [
+            {
+              "name": "query",
+              "type": "AMAZON.SearchQuery"
+            }
+          ],
+          "samples": [
+            "quién fue {query}"
+          ]
+        },
+        {
+          "name": "ComoIntent",
+          "slots": [
+            {
+              "name": "query",
+              "type": "AMAZON.SearchQuery"
+            }
+          ],
+          "samples": [
+            "cómo {query}"
+          ]
+        },
+        {
+          "name": "PorQueIntent",
+          "slots": [
+            {
+              "name": "query",
+              "type": "AMAZON.SearchQuery"
+            }
+          ],
+          "samples": [
+            "por qué {query}"
+          ]
+        },
+        {
+          "name": "CualEsIntent",
+          "slots": [
+            {
+              "name": "query",
+              "type": "AMAZON.SearchQuery"
+            }
+          ],
+          "samples": [
+            "cuál es {query}"
+          ]
+        },
+        {
+          "name": "CualesSonIntent",
+          "slots": [
+            {
+              "name": "query",
+              "type": "AMAZON.SearchQuery"
+            }
+          ],
+          "samples": [
+            "cuáles son {query}"
+          ]
+        },
+        {
+          "name": "CuantoIntent",
+          "slots": [
+            {
+              "name": "query",
+              "type": "AMAZON.SearchQuery"
+            }
+          ],
+          "samples": [
+            "cuánto {query}"
+          ]
+        },
+        {
+          "name": "CuantosIntent",
+          "slots": [
+            {
+              "name": "query",
+              "type": "AMAZON.SearchQuery"
+            }
+          ],
+          "samples": [
+            "cuántos {query}"
+          ]
+        },
+        {
+          "name": "CuantasIntent",
+          "slots": [
+            {
+              "name": "query",
+              "type": "AMAZON.SearchQuery"
+            }
+          ],
+          "samples": [
+            "cuántas {query}"
+          ]
+        },
+        {
+          "name": "DondeIntent",
+          "slots": [
+            {
+              "name": "query",
+              "type": "AMAZON.SearchQuery"
+            }
+          ],
+          "samples": [
+            "dónde {query}"
+          ]
+        },
+        {
+          "name": "CuandoIntent",
+          "slots": [
+            {
+              "name": "query",
+              "type": "AMAZON.SearchQuery"
+            }
+          ],
+          "samples": [
+            "cuándo {query}"
+          ]
+        },
+        {
+          "name": "AMAZON.CancelIntent",
+          "samples": []
+        },
+        {
+          "name": "AMAZON.HelpIntent",
+          "samples": []
+        },
+        {
+          "name": "AMAZON.StopIntent",
+          "samples": [
+            "adiós",
+            "gracias alfred",
+            "eso es todo",
+            "para",
+            "ya gracias",
+            "ah ya gracias",
+            "ya entendí",
+            "suficiente",
+            "detente",
+            "silencio",
+            "cállate",
+            "ya",
+            "ya está",
+            "basta",
+            "alto",
+            "stop",
+            "para ya",
+            "gracias",
+            "muchas gracias",
+            "ok gracias",
+            "listo gracias",
+            "perfecto gracias",
+            "vale gracias",
+            "gracias alfred eso es todo",
+            "ya entiendo",
+            "entendido",
+            "ok entendido",
+            "ya me quedó claro",
+            "con eso basta",
+            "con eso es suficiente",
+            "es suficiente",
+            "no necesito más",
+            "adiós alfred",
+            "hasta luego",
+            "nos vemos",
+            "chao",
+            "bye",
+            "eso es todo alfred",
+            "terminamos",
+            "ya terminé",
+            "cállate alfred",
+            "deja de hablar",
+            "ya no hables",
+            "no sigas",
+            "no quiero escuchar más",
+            "silencio por favor"
+          ]
+        },
+        {
+          "name": "AMAZON.NavigateHomeIntent",
+          "samples": []
+        },
+        {
+          "name": "AMAZON.FallbackIntent",
+          "samples": []
+        }
+      ],
+      "types": [
+        {
+          "name": "WeatherDay",
+          "values": [
+            {
+              "name": {
+                "value": "hoy"
+              }
+            },
+            {
+              "name": {
+                "value": "mañana"
+              }
+            },
+            {
+              "name": {
+                "value": "pasado mañana"
+              }
+            },
+            {
+              "name": {
+                "value": "esta noche"
+              }
+            },
+            {
+              "name": {
+                "value": "esta tarde"
+              }
+            },
+            {
+              "name": {
+                "value": "esta semana"
+              }
+            },
+            {
+              "name": {
+                "value": "el fin de semana"
+              }
+            },
+            {
+              "name": {
+                "value": "el sábado"
+              }
+            },
+            {
+              "name": {
+                "value": "el domingo"
+              }
+            },
+            {
+              "name": {
+                "value": "el lunes"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
