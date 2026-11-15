@@ -36,6 +36,6 @@ terraform plan
 terraform apply
 ```
 
-Terraform manages the function configuration; code is deployed with the command above (`filename`/`source_code_hash` are ignored). The API key SSM parameter is created by hand and not managed, so the key never lands in state. State is local (`terraform.tfstate`, gitignored).
+Terraform manages the function configuration; code is deployed with the command above (`filename`/`source_code_hash` are ignored). The API key SSM parameter is created by hand and not managed, so the key never lands in state. State lives in S3: `s3://infra-123456789012/asistente-alfred/terraform.tfstate` (private, versioned, encrypted, native S3 locking). The bucket was created by hand.
 
 Interaction model changes are applied in the Alexa developer console (JSON Editor → Save → Build).
