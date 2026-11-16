@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT
+
 package main
 
 import (
@@ -17,12 +19,16 @@ type fakeDDB struct {
 	items []memItem // returned newest first, like the real query
 }
 
-func (f *fakeDDB) PutItem(_ context.Context, in *dynamodb.PutItemInput, _ ...func(*dynamodb.Options)) (*dynamodb.PutItemOutput, error) {
+func (f *fakeDDB) PutItem(
+	_ context.Context, in *dynamodb.PutItemInput, _ ...func(*dynamodb.Options),
+) (*dynamodb.PutItemOutput, error) {
 	f.put = in.Item
 	return &dynamodb.PutItemOutput{}, nil
 }
 
-func (f *fakeDDB) Query(_ context.Context, in *dynamodb.QueryInput, _ ...func(*dynamodb.Options)) (*dynamodb.QueryOutput, error) {
+func (f *fakeDDB) Query(
+	_ context.Context, in *dynamodb.QueryInput, _ ...func(*dynamodb.Options),
+) (*dynamodb.QueryOutput, error) {
 	f.query = in
 	out := &dynamodb.QueryOutput{}
 	for _, it := range f.items {
@@ -54,7 +60,10 @@ func TestSaveMemorySetsWeekTTL(t *testing.T) {
 	if err := attributevalue.UnmarshalMap(f.put, &got); err != nil {
 		t.Fatal(err)
 	}
-	want := memItem{User: "u1", TS: now.UnixMilli(), Session: "s1", Question: "q", Answer: "a", ExpiresAt: now.Unix() + 7*24*3600}
+	want := memItem{
+		User: "u1", TS: now.UnixMilli(), Session: "s1", Question: "q", Answer: "a",
+		ExpiresAt: now.Unix() + 7*24*3600,
+	}
 	if got != want {
 		t.Fatalf("got %+v, want %+v", got, want)
 	}

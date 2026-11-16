@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT
+
 package main
 
 import (
@@ -71,7 +73,8 @@ func geocode(ctx context.Context, city string) (place, error) {
 		return place{}, fmt.Errorf("no encontré la ciudad %q", city)
 	}
 	for _, p := range r.Results {
-		if qual != "" && (strings.Contains(strings.ToLower(p.Country), qual) || strings.Contains(strings.ToLower(p.Admin1), qual)) {
+		country, region := strings.ToLower(p.Country), strings.ToLower(p.Admin1)
+		if qual != "" && (strings.Contains(country, qual) || strings.Contains(region, qual)) {
 			return p, nil
 		}
 	}
@@ -91,9 +94,10 @@ func getWeather(ctx context.Context, city string) (string, error) {
 		return "", err
 	}
 	q := url.Values{
-		"latitude":      {fmt.Sprint(p.Latitude)},
-		"longitude":     {fmt.Sprint(p.Longitude)},
-		"current":       {"temperature_2m,apparent_temperature,relative_humidity_2m,precipitation,weather_code,wind_speed_10m"},
+		"latitude":  {fmt.Sprint(p.Latitude)},
+		"longitude": {fmt.Sprint(p.Longitude)},
+		"current": {"temperature_2m,apparent_temperature,relative_humidity_2m," +
+			"precipitation,weather_code,wind_speed_10m"},
 		"daily":         {"weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max"},
 		"timezone":      {"auto"},
 		"forecast_days": {"3"},

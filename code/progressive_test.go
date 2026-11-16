@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT
+
 package main
 
 import (
@@ -25,7 +27,8 @@ func TestSendProgressive(t *testing.T) {
 	ev.Request.RequestID = "req-1"
 	<-sendProgressive(context.Background(), ev)
 
-	if path != "/v1/directives" || auth != "Bearer tok" || got["header"]["requestId"] != "req-1" || got["directive"]["type"] != "VoicePlayer.Speak" {
+	if path != "/v1/directives" || auth != "Bearer tok" ||
+		got["header"]["requestId"] != "req-1" || got["directive"]["type"] != "VoicePlayer.Speak" {
 		t.Fatalf("bad request: path=%s auth=%s body=%v", path, auth, got)
 	}
 	s := got["directive"]["speech"]

@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT
+
 // Alfred: Alexa skill that answers with Claude.
 package main
 
@@ -25,14 +27,16 @@ import (
 
 const (
 	maxTurns = 10 // user/assistant pairs kept in the Alexa session
-	system   = "Eres Alfred, un mayordomo asistente de voz que responde a través de Alexa en español latinoamericano neutro. " +
+	system   = "Eres Alfred, un mayordomo asistente de voz que responde a través de Alexa " +
+		"en español latinoamericano neutro. " +
 		"Tus respuestas se leen en voz alta: sé muy conciso, una o dos frases cortas (unas 40 palabras como máximo). " +
 		"Ve directo al dato: sin introducciones, sin repetir la pregunta y sin cerrar ofreciendo más ayuda. " +
 		"Si el tema es amplio, di solo lo esencial; el usuario pedirá más si lo quiere. " +
 		"No uses markdown, listas, viñetas, emojis, URLs ni símbolos que no se puedan pronunciar. " +
 		"Usa web_search solo para información actual o que cambia (noticias, resultados deportivos, precios, " +
 		"eventos, horarios); para conocimiento general responde directamente. " +
-		"Di solo la respuesta: nunca hables de búsquedas, herramientas, fuentes ni URLs, ni expliques cómo obtuviste la información."
+		"Di solo la respuesta: nunca hables de búsquedas, herramientas, fuentes ni URLs, " +
+		"ni expliques cómo obtuviste la información."
 )
 
 // webSearch is Claude's server-side search: one query per question keeps us
@@ -442,7 +446,8 @@ func handler(ctx context.Context, ev Request) (Response, error) {
 	case "LaunchRequest":
 		return speak("A sus órdenes. ¿En qué puedo ayudarle?", false, Attributes{}), nil
 	case "SessionEndedRequest":
-		log.Printf("session ended: locale=%s reason=%s error=%s %s", ev.Request.Locale, ev.Request.Reason, ev.Request.Error.Type, ev.Request.Error.Message)
+		r := ev.Request
+		log.Printf("session ended: locale=%s reason=%s error=%s %s", r.Locale, r.Reason, r.Error.Type, r.Error.Message)
 		return Response{Version: "1.0"}, nil
 	case "IntentRequest":
 	default:
@@ -461,7 +466,8 @@ func handler(ctx context.Context, ev Request) (Response, error) {
 
 	switch ev.Request.Intent.Name {
 	case "WeatherIntent":
-		return handleQuestion(ctx, ev, weatherQuestion(ev.Request.Intent.Slots["city"].Value, ev.Request.Intent.Slots["day"].Value), attrs), nil
+		slots := ev.Request.Intent.Slots
+		return handleQuestion(ctx, ev, weatherQuestion(slots["city"].Value, slots["day"].Value), attrs), nil
 	case "ChatIntent":
 		q := ev.Request.Intent.Slots["query"].Value
 		if q == "" {

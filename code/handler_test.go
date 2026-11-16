@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT
+
 package main
 
 import (
@@ -32,7 +34,11 @@ func event(t *testing.T, reqType, intent string, slots map[string]string, histor
 			"application": map[string]string{"applicationId": testSkill},
 			"attributes":  map[string]any{"history": history},
 		},
-		"request": map[string]any{"type": reqType, "requestId": "req-1", "intent": map[string]any{"name": intent, "slots": s}},
+		"request": map[string]any{
+			"type":      reqType,
+			"requestId": "req-1",
+			"intent":    map[string]any{"name": intent, "slots": s},
+		},
 	})
 	var ev Request
 	if err := json.Unmarshal(raw, &ev); err != nil {
@@ -192,7 +198,9 @@ func TestHandlerSendsAndTrimsHistory(t *testing.T) {
 
 func TestHandlerUsesAndSavesMemory(t *testing.T) {
 	past := time.Now().Add(-24 * time.Hour).UnixMilli()
-	db := &fakeDDB{items: []memItem{{User: "user-1", TS: past, Session: "old", Question: "río más largo", Answer: "El Loa."}}}
+	db := &fakeDDB{items: []memItem{
+		{User: "user-1", TS: past, Session: "old", Question: "río más largo", Answer: "El Loa."},
+	}}
 	withFakeDDB(t, db)
 	bodies := withClaude(t, answer("Le pregunté por el río más largo."))
 
