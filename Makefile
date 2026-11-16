@@ -29,18 +29,18 @@ deploy: test zip ## Test, build and upload the code to Lambda
 logs: ## Tail Lambda logs (SINCE=15m)
 	$(AWS) logs tail /aws/lambda/$(FUNCTION) --since $(SINCE) --format short --follow
 
-init: ## Terraform init (needs terraform/backend.hcl)
-	cd terraform && terraform init -backend-config=backend.hcl
+init: ## OpenTofu init (needs terraform/backend.hcl)
+	cd terraform && tofu init -backend-config=backend.hcl
 
-plan: ## Terraform plan
-	cd terraform && terraform plan
+plan: ## OpenTofu plan
+	cd terraform && tofu plan
 
-apply: ## Terraform apply
-	cd terraform && terraform apply
+apply: ## OpenTofu apply
+	cd terraform && tofu apply
 
-fmt: ## Format Go and Terraform
+fmt: ## Format Go and OpenTofu
 	cd code && gofmt -w .
-	cd terraform && terraform fmt
+	cd terraform && tofu fmt
 
 clean: ## Remove build output
 	rm -rf build

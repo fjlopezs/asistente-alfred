@@ -1,4 +1,4 @@
-# Resources created by hand before Terraform. Safe to keep: no-ops once in state.
+# Resources created by hand before OpenTofu. Safe to keep: no-ops once in state.
 
 import {
   to = aws_iam_role.lambda

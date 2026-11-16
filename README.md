@@ -2,7 +2,7 @@
 
 # Asistente Alfred
 
-[![Unit tests](https://github.com/fjlopezs/asistente-alfred/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/fjlopezs/asistente-alfred/actions/workflows/test.yml)
+[![CI](https://github.com/fjlopezs/asistente-alfred/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/fjlopezs/asistente-alfred/actions/workflows/test.yml)
 [![Coverage](https://github.com/fjlopezs/asistente-alfred/raw/badges/coverage.svg)](https://github.com/fjlopezs/asistente-alfred/actions/workflows/test.yml)
 
 Personal Alexa custom skill (invocation: "asistente alfred") that answers questions with Claude, in Spanish, with a deep male voice (Polly "Miguel").
@@ -10,7 +10,7 @@ Personal Alexa custom skill (invocation: "asistente alfred") that answers questi
 ## Layout
 
 - `code/` — Lambda handler (Go, `provided.al2023`, arm64). Claude via `anthropic-sdk-go`, weather tool backed by [Open-Meteo](https://open-meteo.com/) and Claude web search for current information.
-- `terraform/` — AWS resources (IAM role, Lambda, permission for Alexa, log group, DynamoDB memory table). Terraform 1.17.2, AWS provider 6.73.
+- `terraform/` — AWS resources (IAM role, Lambda, permission for Alexa, log group, DynamoDB memory table), managed with [OpenTofu](https://opentofu.org/) 1.13 (version pinned in `.opentofu-version`), AWS provider 6.73.
 - `interaction-model.es-MX.json`, `interaction-model.es-US.json` — Alexa interaction models (es-US is synced from es-MX).
 
 ## Setup
@@ -19,7 +19,7 @@ Personal Alexa custom skill (invocation: "asistente alfred") that answers questi
 2. Store an [Anthropic API key](https://console.anthropic.com/) as an SSM SecureString:
    `aws ssm put-parameter --name /alfred/anthropic-api-key --type SecureString --value "$KEY"`
 3. Fill `terraform/backend.hcl` and `terraform/terraform.tfvars` (see [Infrastructure](#infrastructure)), then `make zip init apply`.
-4. Point the skill's endpoint to the Lambda ARN (`terraform output`) and build the model.
+4. Point the skill's endpoint to the Lambda ARN (`tofu output`) and build the model.
 
 ## Configuration (Lambda env vars)
 
@@ -50,7 +50,7 @@ Defaults: `AWS_PROFILE=personal`, `AWS_REGION=us-east-1`, `FUNCTION=alfred-alexa
 
 ## CI
 
-`.github/workflows/test.yml` runs on every push and pull request: `gofmt` check, `go vet`, and `go test -race -shuffle=on` with coverage (per-function report in the job summary). On `main`, it renders the coverage badge and pushes it to the orphan `badges` branch, so the README needs no third-party service.
+`.github/workflows/test.yml` runs on every push and pull request: `gofmt` check, `go vet`, and `go test -race -shuffle=on` with coverage (per-function report in the job summary). A second job runs `tofu fmt -check` and `tofu validate`. On `main`, it renders the coverage badge and pushes it to the orphan `badges` branch, so the README needs no third-party service.
 
 ## Infrastructure
 
@@ -62,7 +62,7 @@ make plan
 make apply
 ```
 
-Both copies are gitignored. Terraform manages the function configuration; code is deployed with `make deploy` (`filename`/`source_code_hash` are ignored). The API key SSM parameter is created by hand and not managed, so the key never lands in state. State lives in an S3 bucket you create beforehand (versioned, encrypted, native S3 locking).
+Both copies are gitignored. OpenTofu manages the function configuration; code is deployed with `make deploy` (`filename`/`source_code_hash` are ignored). The API key SSM parameter is created by hand and not managed, so the key never lands in state. State lives in an S3 bucket you create beforehand (versioned, encrypted, native S3 locking).
 
 Interaction model changes are applied in the Alexa developer console (JSON Editor → Save → Build).
 

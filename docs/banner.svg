@@ -69,7 +69,7 @@
       </g>
       <g transform="translate(938 292)">
         <rect width="118" height="36" rx="18" fill="#ffffff" fill-opacity="0.08" stroke="#ffffff" stroke-opacity="0.18"/>
-        <text x="59" y="24" text-anchor="middle">Terraform</text>
+        <text x="59" y="24" text-anchor="middle">OpenTofu</text>
       </g>
       <g transform="translate(1068 292)">
         <rect width="136" height="36" rx="18" fill="#ffffff" fill-opacity="0.08" stroke="#ffffff" stroke-opacity="0.18"/>

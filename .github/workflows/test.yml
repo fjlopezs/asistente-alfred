@@ -1,4 +1,4 @@
-name: Unit tests
+name: CI
 
 on:
   push:
@@ -54,6 +54,27 @@ jobs:
         with:
           name: coverage
           path: code/coverage.out
+
+  tofu:
+    runs-on: ubuntu-26.04
+    defaults:
+      run:
+        working-directory: terraform
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: opentofu/setup-opentofu@v2
+        with:
+          tofu_version_file: terraform/.opentofu-version
+          tofu_wrapper: false
+
+      - name: Check formatting
+        run: tofu fmt -check -recursive
+
+      - name: Validate
+        run: |
+          tofu init -backend=false -input=false
+          tofu validate
 
   # Publishes the coverage badge to the orphan "badges" branch so the README
   # can show it without third-party services (the repo is private).

@@ -3,7 +3,7 @@ build/
 bootstrap
 .DS_Store
 
-# Terraform
+# OpenTofu
 .terraform/
 *.tfstate
 *.tfstate.*
