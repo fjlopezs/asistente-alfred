@@ -19,6 +19,7 @@ import (
 
 	"github.com/anthropics/anthropic-sdk-go/v2"
 	"github.com/anthropics/anthropic-sdk-go/v2/option"
+	"github.com/anthropics/anthropic-sdk-go/v2/packages/param"
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
@@ -42,13 +43,24 @@ const (
 // webSearch is Claude's server-side search: one query per question keeps us
 // inside Alexa's ~8s window.
 var webSearch = anthropic.WebSearchTool20250305Param{
-	MaxUses: anthropic.Int(1),
-	UserLocation: anthropic.UserLocationParam{
-		City:     anthropic.String("Temuco"),
-		Region:   anthropic.String("Araucanía"),
-		Country:  anthropic.String("CL"),
-		Timezone: anthropic.String("America/Santiago"),
-	},
+	MaxUses:      anthropic.Int(1),
+	UserLocation: userLocation(),
+}
+
+// userLocation localizes search results; unset env vars are omitted.
+func userLocation() anthropic.UserLocationParam {
+	opt := func(k string) param.Opt[string] {
+		if v := os.Getenv(k); v != "" {
+			return anthropic.String(v)
+		}
+		return param.Opt[string]{}
+	}
+	return anthropic.UserLocationParam{
+		City:     opt("LOCATION_CITY"),
+		Region:   opt("LOCATION_REGION"),
+		Country:  opt("LOCATION_COUNTRY"),
+		Timezone: opt("TIMEZONE"),
+	}
 }
 
 var tools = []anthropic.ToolUnionParam{

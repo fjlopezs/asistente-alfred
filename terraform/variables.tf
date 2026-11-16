@@ -14,8 +14,8 @@ variable "function_name" {
 }
 
 variable "alexa_skill_id" {
-  type    = string
-  default = "amzn1.ask.skill.00000000-0000-0000-0000-000000000000"
+  description = "Skill ID from the Alexa developer console (amzn1.ask.skill...)"
+  type        = string
 }
 
 variable "claude_model" {
@@ -30,8 +30,19 @@ variable "api_key_param" {
 }
 
 variable "default_city" {
-  type    = string
-  default = "Temuco, Chile"
+  description = "City used for weather when none is said, e.g. \"Santiago, Chile\""
+  type        = string
+  default     = ""
+}
+
+variable "location" {
+  description = "Approximate user location for web search (country is ISO 3166-1 alpha-2)"
+  type = object({
+    city    = optional(string, "")
+    region  = optional(string, "")
+    country = optional(string, "")
+  })
+  default = {}
 }
 
 variable "lambda_zip" {

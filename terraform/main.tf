@@ -51,12 +51,15 @@ resource "aws_lambda_function" "alfred" {
 
   environment {
     variables = {
-      CLAUDE_MODEL   = var.claude_model
-      API_KEY_PARAM  = var.api_key_param
-      ALEXA_SKILL_ID = var.alexa_skill_id
-      DEFAULT_CITY   = var.default_city
-      MEMORY_TABLE   = aws_dynamodb_table.memory.name
-      TIMEZONE       = var.timezone
+      CLAUDE_MODEL     = var.claude_model
+      API_KEY_PARAM    = var.api_key_param
+      ALEXA_SKILL_ID   = var.alexa_skill_id
+      DEFAULT_CITY     = var.default_city
+      MEMORY_TABLE     = aws_dynamodb_table.memory.name
+      TIMEZONE         = var.timezone
+      LOCATION_CITY    = var.location.city
+      LOCATION_REGION  = var.location.region
+      LOCATION_COUNTRY = var.location.country
     }
   }
 

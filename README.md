@@ -13,6 +13,14 @@ Personal Alexa custom skill (invocation: "asistente alfred") that answers questi
 - `terraform/` — AWS resources (IAM role, Lambda, permission for Alexa, log group, DynamoDB memory table). Terraform 1.17.2, AWS provider 6.73.
 - `interaction-model.es-MX.json`, `interaction-model.es-US.json` — Alexa interaction models (es-US is synced from es-MX).
 
+## Setup
+
+1. Create a custom skill in the [Alexa developer console](https://developer.amazon.com/alexa/console/ask) (locale es-MX, optionally es-US) and paste `interaction-model.es-MX.json` in the JSON Editor.
+2. Store an [Anthropic API key](https://console.anthropic.com/) as an SSM SecureString:
+   `aws ssm put-parameter --name /alfred/anthropic-api-key --type SecureString --value "$KEY"`
+3. Fill `terraform/backend.hcl` and `terraform/terraform.tfvars` (see [Infrastructure](#infrastructure)), then `make zip init apply`.
+4. Point the skill's endpoint to the Lambda ARN (`terraform output`) and build the model.
+
 ## Configuration (Lambda env vars)
 
 | Variable | Purpose |
@@ -21,6 +29,7 @@ Personal Alexa custom skill (invocation: "asistente alfred") that answers questi
 | `API_KEY_PARAM` | SSM SecureString holding the Anthropic API key |
 | `ALEXA_SKILL_ID` | Rejects requests from other skills |
 | `DEFAULT_CITY` | City used for weather when none is said |
+| `LOCATION_CITY`, `LOCATION_REGION`, `LOCATION_COUNTRY` | Approximate location to localize web search (optional) |
 | `MEMORY_TABLE` | DynamoDB table for conversation memory (unset disables it) |
 | `TIMEZONE` | User's timezone, used to date past conversations |
 
@@ -46,12 +55,14 @@ Defaults: `AWS_PROFILE=personal`, `AWS_REGION=us-east-1`, `FUNCTION=alfred-alexa
 ## Infrastructure
 
 ```sh
-cd terraform && terraform init   # once
+cp terraform/backend.hcl.example terraform/backend.hcl          # state bucket, region, profile
+cp terraform/terraform.tfvars.example terraform/terraform.tfvars # skill ID, city, location
+make init    # once
 make plan
 make apply
 ```
 
-Terraform manages the function configuration; code is deployed with the command above (`filename`/`source_code_hash` are ignored). The API key SSM parameter is created by hand and not managed, so the key never lands in state. State lives in S3: `s3://infra-123456789012/asistente-alfred/terraform.tfstate` (private, versioned, encrypted, native S3 locking). The bucket was created by hand.
+Both copies are gitignored. Terraform manages the function configuration; code is deployed with `make deploy` (`filename`/`source_code_hash` are ignored). The API key SSM parameter is created by hand and not managed, so the key never lands in state. State lives in an S3 bucket you create beforehand (versioned, encrypted, native S3 locking).
 
 Interaction model changes are applied in the Alexa developer console (JSON Editor → Save → Build).
 

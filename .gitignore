@@ -7,3 +7,6 @@ bootstrap
 .terraform/
 *.tfstate
 *.tfstate.*
+*.tfvars
+!*.tfvars.example
+terraform/backend.hcl

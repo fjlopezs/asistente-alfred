@@ -1,0 +1,11 @@
+# Copy to terraform.tfvars and fill in.
+alexa_skill_id = "amzn1.ask.skill.00000000-0000-0000-0000-000000000000"
+aws_profile    = "default"
+default_city   = "Santiago, Chile"
+timezone       = "America/Santiago"
+
+location = {
+  city    = "Santiago"
+  region  = "Región Metropolitana"
+  country = "CL"
+}

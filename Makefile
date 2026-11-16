@@ -7,7 +7,7 @@ AWS := aws --profile $(AWS_PROFILE) --region $(AWS_REGION)
 ZIP := build/alfred.zip
 BIN := build/bootstrap
 
-.PHONY: help test build zip deploy logs plan apply fmt clean
+.PHONY: help test build zip deploy logs init plan apply fmt clean
 
 help: ## List targets
 	@grep -hE '^[a-z-]+:.*## ' $(MAKEFILE_LIST) | awk -F':.*## ' '{printf "  %-8s %s\n", $$1, $$2}'
@@ -28,6 +28,9 @@ deploy: test zip ## Test, build and upload the code to Lambda
 
 logs: ## Tail Lambda logs (SINCE=15m)
 	$(AWS) logs tail /aws/lambda/$(FUNCTION) --since $(SINCE) --format short --follow
+
+init: ## Terraform init (needs terraform/backend.hcl)
+	cd terraform && terraform init -backend-config=backend.hcl
 
 plan: ## Terraform plan
 	cd terraform && terraform plan

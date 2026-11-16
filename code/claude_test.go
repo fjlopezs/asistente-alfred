@@ -132,3 +132,18 @@ func TestRunToolLoopStopsAtMaxCalls(t *testing.T) {
 		t.Fatalf("made %d calls, want %d", len(*bodies), maxClaudeCalls)
 	}
 }
+
+func TestUserLocation(t *testing.T) {
+	t.Setenv("LOCATION_CITY", "Valdivia")
+	t.Setenv("LOCATION_REGION", "")
+	t.Setenv("LOCATION_COUNTRY", "CL")
+	t.Setenv("TIMEZONE", "America/Santiago")
+	b, err := json.Marshal(userLocation())
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := `{"city":"Valdivia","country":"CL","timezone":"America/Santiago","type":"approximate"}`
+	if string(b) != want {
+		t.Fatalf("got %s, want %s", b, want)
+	}
+}
