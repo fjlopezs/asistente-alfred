@@ -200,11 +200,24 @@ func systemPrompt(memory string) string {
 	return s + memory
 }
 
+const maxClaudeCalls = 3 // tool round trips must fit in Alexa's ~8s window
+
 func askClaude(ctx context.Context, question string, history []Turn, memory string) (string, error) {
 	c, err := getClient(ctx)
 	if err != nil {
 		return "", fmt.Errorf("init client: %w", err)
 	}
+	// One deadline for the whole tool loop: Alexa gives up after ~8s.
+	ctx, cancel := context.WithTimeout(ctx, 7500*time.Millisecond)
+	defer cancel()
+	resp, err := runToolLoop(ctx, c, toMessages(history, question), memory)
+	if err != nil {
+		return "", err
+	}
+	return answerText(resp), nil
+}
+
+func toMessages(history []Turn, question string) []anthropic.MessageParam {
 	msgs := make([]anthropic.MessageParam, 0, len(history)+1)
 	for _, t := range history {
 		if t.Role == "assistant" {
@@ -213,60 +226,71 @@ func askClaude(ctx context.Context, question string, history []Turn, memory stri
 			msgs = append(msgs, anthropic.NewUserMessage(anthropic.NewTextBlock(t.Content)))
 		}
 	}
-	msgs = append(msgs, anthropic.NewUserMessage(anthropic.NewTextBlock(question)))
+	return append(msgs, anthropic.NewUserMessage(anthropic.NewTextBlock(question)))
+}
 
-	// One deadline for the whole tool loop: Alexa gives up after ~8s.
-	ctx, cancel := context.WithTimeout(ctx, 7500*time.Millisecond)
-	defer cancel()
-
-	var resp *anthropic.Message
-	for i := 0; ; i++ {
-		resp, err = c.Messages.New(ctx, anthropic.MessageNewParams{
-			Model:        anthropic.Model(model),
-			MaxTokens:    250,
-			System:       []anthropic.TextBlockParam{{Text: systemPrompt(memory)}},
-			Thinking:     anthropic.ThinkingConfigParamUnion{OfDisabled: &anthropic.ThinkingConfigDisabledParam{}},
-			OutputConfig: anthropic.OutputConfigParam{Effort: anthropic.OutputConfigEffortLow},
-			Tools:        tools,
-			Messages:     msgs,
-		})
-		if err != nil {
-			return "", err
-		}
-		if i == 2 {
-			break
-		}
-		if resp.StopReason == anthropic.StopReasonPauseTurn {
-			// Server-side search paused; resend as-is and the API resumes.
-			msgs = append(msgs, resp.ToParam())
-			continue
-		}
-		if resp.StopReason != anthropic.StopReasonToolUse {
-			break
-		}
-		msgs = append(msgs, resp.ToParam())
-		var results []anthropic.ContentBlockParamUnion
-		for _, b := range resp.Content {
-			tu, ok := b.AsAny().(anthropic.ToolUseBlock)
-			if !ok {
-				continue
-			}
-			var in struct {
-				City string `json:"city"`
-			}
-			_ = json.Unmarshal([]byte(tu.JSON.Input.Raw()), &in)
-			out, werr := getWeather(ctx, in.City)
-			log.Printf("tool %s city=%q err=%v", tu.Name, in.City, werr)
-			if werr != nil {
-				results = append(results, anthropic.NewToolResultBlock(tu.ID, werr.Error(), true))
-			} else {
-				results = append(results, anthropic.NewToolResultBlock(tu.ID, out, false))
-			}
-		}
-		msgs = append(msgs, anthropic.NewUserMessage(results...))
+// runToolLoop calls Claude until it stops asking for tools, resuming paused
+// server-side searches, for at most maxClaudeCalls requests.
+func runToolLoop(
+	ctx context.Context, c anthropic.Client, msgs []anthropic.MessageParam, memory string,
+) (*anthropic.Message, error) {
+	params := anthropic.MessageNewParams{
+		Model:        anthropic.Model(model),
+		MaxTokens:    250,
+		System:       []anthropic.TextBlockParam{{Text: systemPrompt(memory)}},
+		Thinking:     anthropic.ThinkingConfigParamUnion{OfDisabled: &anthropic.ThinkingConfigDisabledParam{}},
+		OutputConfig: anthropic.OutputConfigParam{Effort: anthropic.OutputConfigEffortLow},
+		Tools:        tools,
+		Messages:     msgs,
 	}
+	for i := 1; ; i++ {
+		resp, err := c.Messages.New(ctx, params)
+		if err != nil || i == maxClaudeCalls {
+			return resp, err
+		}
+		switch resp.StopReason {
+		case anthropic.StopReasonPauseTurn:
+			// Server-side search paused; resend as-is and the API resumes.
+			params.Messages = append(params.Messages, resp.ToParam())
+		case anthropic.StopReasonToolUse:
+			params.Messages = append(params.Messages, resp.ToParam(), anthropic.NewUserMessage(runTools(ctx, resp)...))
+		default:
+			return resp, nil
+		}
+	}
+}
+
+// runTools executes the client-side tool calls in resp (only get_weather).
+func runTools(ctx context.Context, resp *anthropic.Message) []anthropic.ContentBlockParamUnion {
+	var results []anthropic.ContentBlockParamUnion
+	for _, b := range resp.Content {
+		if tu, ok := b.AsAny().(anthropic.ToolUseBlock); ok {
+			results = append(results, weatherResult(ctx, tu))
+		}
+	}
+	return results
+}
+
+func weatherResult(ctx context.Context, tu anthropic.ToolUseBlock) anthropic.ContentBlockParamUnion {
+	var in struct {
+		City string `json:"city"`
+	}
+	_ = json.Unmarshal([]byte(tu.JSON.Input.Raw()), &in)
+	out, err := getWeather(ctx, in.City)
+	log.Printf("tool %s city=%q err=%v", tu.Name, in.City, err)
+	if err != nil {
+		return anthropic.NewToolResultBlock(tu.ID, err.Error(), true)
+	}
+	return anthropic.NewToolResultBlock(tu.ID, out, false)
+}
+
+// markdown strips characters Alexa would otherwise read or mangle.
+var markdown = strings.NewReplacer("*", "", "#", "", "`", "", "_", " ")
+
+// answerText turns Claude's final message into speakable text.
+func answerText(resp *anthropic.Message) string {
 	if resp.StopReason == anthropic.StopReasonRefusal {
-		return "Lo siento, señor, no puedo ayudarle con eso.", nil
+		return "Lo siento, señor, no puedo ayudarle con eso."
 	}
 	var sb strings.Builder
 	for _, b := range resp.Content {
@@ -277,14 +301,13 @@ func askClaude(ctx context.Context, question string, history []Turn, memory stri
 			sb.Reset() // drop preamble like "Voy a buscar..."
 		case anthropic.TextBlock:
 			sb.WriteString(v.Text)
+		default:
 		}
 	}
-	// Strip markdown characters Alexa would otherwise read or mangle.
-	clean := strings.NewReplacer("*", "", "#", "", "`", "", "_", " ").Replace(sb.String())
-	if s := strings.TrimSpace(clean); s != "" {
-		return s, nil
+	if s := strings.TrimSpace(markdown.Replace(sb.String())); s != "" {
+		return s
 	}
-	return "Disculpe, no tengo respuesta para eso.", nil
+	return "Disculpe, no tengo respuesta para eso."
 }
 
 // questionIntents maps each question-word intent in the interaction model to
