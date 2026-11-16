@@ -1,4 +1,9 @@
+<p align="center"><img src="docs/banner.svg" alt="Asistente Alfred: mayordomo de voz para Alexa, con respuestas de Claude" width="100%"></p>
+
 # Asistente Alfred
+
+[![Unit tests](https://github.com/fjlopezs/asistente-alfred/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/fjlopezs/asistente-alfred/actions/workflows/test.yml)
+[![Coverage](https://github.com/fjlopezs/asistente-alfred/raw/badges/coverage.svg)](https://github.com/fjlopezs/asistente-alfred/actions/workflows/test.yml)
 
 Personal Alexa custom skill (invocation: "asistente alfred") that answers questions with Claude, in Spanish, with a deep male voice (Polly "Miguel").
 
@@ -33,6 +38,10 @@ make help     # all targets
 ```
 
 Defaults: `AWS_PROFILE=personal`, `AWS_REGION=us-east-1`, `FUNCTION=alfred-alexa-skill` (override on the command line).
+
+## CI
+
+`.github/workflows/test.yml` runs on every push and pull request: `gofmt` check, `go vet`, and `go test -race -shuffle=on` with coverage (per-function report in the job summary). On `main`, it renders the coverage badge and pushes it to the orphan `badges` branch, so the README needs no third-party service.
 
 ## Infrastructure
 

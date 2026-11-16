@@ -1,0 +1,89 @@
+name: Unit tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: test-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    outputs:
+      coverage: ${{ steps.cov.outputs.pct }}
+    defaults:
+      run:
+        working-directory: code
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: code/go.mod
+          cache-dependency-path: code/go.sum
+
+      - name: Check formatting
+        run: test -z "$(gofmt -l . | tee /dev/stderr)"
+
+      - name: Vet
+        run: go vet ./...
+
+      - name: Test
+        run: go test -race -shuffle=on -coverprofile=coverage.out ./...
+
+      - name: Coverage summary
+        id: cov
+        run: |
+          pct=$(go tool cover -func=coverage.out | awk '/^total:/ {sub("%", "", $3); print $3}')
+          echo "pct=$pct" >> "$GITHUB_OUTPUT"
+          {
+            echo "### Coverage: ${pct}%"
+            echo '```'
+            go tool cover -func=coverage.out
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: code/coverage.out
+
+  # Publishes the coverage badge to the orphan "badges" branch so the README
+  # can show it without third-party services (the repo is private).
+  badge:
+    needs: test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Render badge
+        env:
+          PCT: ${{ needs.test.outputs.coverage }}
+        run: python3 .github/scripts/coverage_badge.py "$PCT" "$RUNNER_TEMP/coverage.svg"
+
+      - name: Push to badges branch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if git fetch --depth 1 origin badges; then
+            git checkout -B badges FETCH_HEAD
+          else
+            git checkout --orphan badges
+            git rm -rf --quiet .
+          fi
+          cp "$RUNNER_TEMP/coverage.svg" coverage.svg
+          git add coverage.svg
+          if ! git diff --cached --quiet; then
+            git commit -m "Update coverage badge"
+            git push origin badges
+          fi
