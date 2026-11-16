@@ -93,3 +93,24 @@ func TestMemoryPrompt(t *testing.T) {
 		t.Fatalf("unexpected prompt: %q", p)
 	}
 }
+
+func TestLoadTZFallsBackToUTC(t *testing.T) {
+	if loadTZ("Not/AZone") != time.UTC {
+		t.Fatal("invalid zone must fall back to UTC")
+	}
+	if loadTZ("America/Santiago").String() != "America/Santiago" {
+		t.Fatal("embedded tzdata missing")
+	}
+}
+
+func TestMemoryDisabledWithoutTable(t *testing.T) {
+	f := &fakeDDB{}
+	withFakeDDB(t, f)
+	memoryTable = ""
+	if err := saveMemory(t.Context(), "u1", "s1", "q", "a", time.Now()); err != nil || f.put != nil {
+		t.Fatalf("save must be a no-op: err=%v put=%v", err, f.put)
+	}
+	if recall(t.Context(), "u1", "s1") != "" {
+		t.Fatal("recall must be empty")
+	}
+}

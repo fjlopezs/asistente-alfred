@@ -60,3 +60,36 @@ func TestWeatherQuestion(t *testing.T) {
 		t.Fatal(got)
 	}
 }
+
+func TestWMO(t *testing.T) {
+	cases := map[int]string{
+		0: "despejado", 2: "parcialmente nublado", 3: "nublado", 45: "niebla", 53: "llovizna",
+		63: "lluvia", 75: "nieve", 81: "chubascos", 86: "chubascos de nieve", 95: "tormenta",
+	}
+	for code, want := range cases {
+		if got := wmo(code); got != want {
+			t.Errorf("wmo(%d) = %q, want %q", code, got, want)
+		}
+	}
+}
+
+func TestGetWeatherErrors(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Query().Get("name") == "Atlantis" {
+			w.Write([]byte(`{"results":[]}`))
+			return
+		}
+		http.Error(w, "down", http.StatusServiceUnavailable)
+	}))
+	defer srv.Close()
+	oldGeo, oldFc := geocodeURL, forecastURL
+	geocodeURL, forecastURL = srv.URL+"/geo", srv.URL+"/fc"
+	t.Cleanup(func() { geocodeURL, forecastURL = oldGeo, oldFc })
+
+	if _, err := getWeather(t.Context(), "Atlantis"); err == nil || !strings.Contains(err.Error(), "no encontré la ciudad") {
+		t.Errorf("unknown city: %v", err)
+	}
+	if _, err := getWeather(t.Context(), "Temuco"); err == nil || !strings.Contains(err.Error(), "503") {
+		t.Errorf("geocoding outage: %v", err)
+	}
+}
